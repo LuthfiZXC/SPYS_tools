@@ -6,6 +6,7 @@
 
 #----- PLEASE DON'T RECODE OR REUPLOAD THIS SCRIPT -----#
 
+#----- Importing Module -----#
 import os
 import re
 import sys
@@ -47,7 +48,7 @@ BC= '\033[96m'
 BW= '\033[97m'
 
 
-
+#----- All Variables Here -----#
 web = 'http://spys.one'
 spys = [
     '/squid-proxy/',
@@ -76,10 +77,11 @@ name = [
         'Non Anonim Proxy',
         'Anonim Proxy'
     ]
+proxies = []    #Variable to save proxy list
+sort = []       
+algorithm = 0   #Just variable to choose decrypt algorithm
 
-proxies = []
-sort = []
-algorithm = 0
+#----- Get File Directory -----#
 loc = getcwd()
 if '\\' in loc:
     loc = loc.replace('\\', '/')
@@ -88,11 +90,12 @@ if not os.path.exists('data'):
     os.mkdir('data')
 
 
+#----- Function to open txt files -----#
 def file(self):
     file = open('data/'+filename[self]+'.txt', 'a+')
     return file
 
-
+#----- Welcome Text -----#
 def welcome():
     print(f'''{BG}
    ____ ___ __  __ ____   ____   _  __ ____
@@ -102,15 +105,16 @@ def welcome():
 \x1B[3m{BY} Created by Luthfi ZXC\x1B[23m{BC}
 #------------------------------------------------#{W}''')
 
-
+#----- Menu List -----#
 def menu():
     print(f'{B}MENU :')
+    #-- Autocreate List --#
     for i,j in enumerate(name):
         print(f'{BG}    [{i+1}] {j}')
     print('\n    [99] Run All')
     print(f'{R}    [0]  Exit{W}')
 
-
+#----- Clear Screen Function -----#
 def clear():
     if name == 'nt':
         system('cls')
@@ -118,14 +122,18 @@ def clear():
         system('clear')
 
 
+#----- Get Current Time -----#
 def time():
     now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     return now
 
 
+#----- Function to print text without newline -----#
 def prints(self):
     return sys.stdout.write(self)
 
+
+#----- Function to sort data -----#
 def sorting(sort, data):
     pjg = len(sort)
     for i in range(pjg-1,0,-1):
@@ -138,7 +146,7 @@ def sorting(sort, data):
                 sort[j+1] = temp
                 data[j+1] = temp1
 
-
+#----- Data To Be Sent To Target -----#
 def data1(show,country,anm,ssl,type):
     data = {
         'xpp'   :show,
@@ -160,7 +168,7 @@ def data2(show,anm,ssl,port,types):
     }
     return data
 
-
+#----- Function To Get Proxy and Decrypting Port From Target -----#
 def decrypt(html):
     global proxies
     data = {}
@@ -168,6 +176,7 @@ def decrypt(html):
 
     soup = BeautifulSoup(html, 'html.parser')
 
+    #-- Auto determine decrypting method --#
     try:
         rumus = re.search(r'type=\"text/javascript\">eval\((.*?)\)\n</', html).group(1)
         algorithm = 0
@@ -176,29 +185,35 @@ def decrypt(html):
         rumus = re.search(r'</table><script type=\"text/javascript\">(.*?);</script>', html).group(1)
         algorithm = 1
 
+    #-- Getting target index --#
     target = soup.find_all('tr', onmouseover="this.style.background='#002424'")
     print(f'\r[-] Catching {len(target)} proxies...')
     print(f'{G}[-] Decrypting Port{W}')
 
+    #-- Decrypting Port --#
     for i in tqdm(target,desc='[-] Process', bar_format='{l_bar}\033[32m{bar}\033[37m| '):
         port=''
         ip = re.search(r'class=\"spy14\">(.*?)<script', str(i)).group(1)
         raw_port = re.search(r'font>\"\+(.*?)\)<', str(i)).group(1)
-
+        #-- Using ALGORITHM 1 --#
         if algorithm == 0:
             split_port = raw_port.replace('(', '').replace(')', '').split('+')
-
+            
+            #-- decrypting required port value --#
             for i in split_port:
                 if not i in data:
                     dat = f'''eval({rumus}); a = {i}'''
                     parsed_port = str(js2py.eval_js(dat))
                     data[i]=parsed_port
 
+            #-- merge port --#
             for j in split_port:
                 port += data[j]
-
+                
+            #-- Saving Proxy to "proxies" variable --#
             proxies.append(ip+':'+port)
 
+        #-- Using ALGORITM 2 --#
         else:
             split_port = re.findall(r'\((.*?)\^', raw_port)
             port = ''
@@ -218,7 +233,7 @@ def decrypt(html):
             proxies.append(ip+':'+port)
     print(f'{G}[✓] Done{W}')
 
-
+#----- Run Task -----#
 def run(self):
     if self == '0':
         exit()
@@ -245,7 +260,7 @@ def run(self):
         print(f'{G}[✓] Done{W}')
         print(f'{Y}Proxy list saved to:\n{loc}/data/{filename[mode-1]}.txt{W}')
 
-
+#----- MAIN Function -----$
 def main():
     clear()
     welcome()
